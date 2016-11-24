@@ -1,5 +1,6 @@
 (ns clojure-example-cli.core
-  (:require [trptcolin.versioneer.core :as version]
+  (:require [clojure-example-cli.utils.common :as c]
+            [trptcolin.versioneer.core :as version]
             [clojure.tools.cli :as cli]
             [clojure.string :as string]
             [clojure.java.io :as io]
@@ -32,14 +33,6 @@
                     ["-h" "--help" "Show cmd2 functionality"]],
           :required-options #{:file},
           :usage-string (string/join " " ["Usage:" prg-name "cmd2 [options] args"])}})
-
-(defn error-msg [errors]
-  (str "The following errors occurred while parsing your command:\n\n"
-       (string/join "\n" errors)))
-
-(defn exit [status msg]
-  (println msg)
-  (System/exit status))
 
 (defn missing-required-opts?
   [required-opts opts]
@@ -81,10 +74,10 @@
          usage (cmd-usage usage-str summary)
          missing-opts? (missing-required-opts? required-opts options) ]
     (cond
-      (:help options) (exit 0 usage)
-      missing-opts?   (exit 0 (str "Missing required param!\n" usage))
-      (not (empty? arguments)) (exit 1 str "Too many extra args!\n" usage)
-      errors (exit 1 (error-msg errors)))
+      (:help options) (c/exit 0 usage)
+      missing-opts?   (c/exit 0 (str "Missing required param!\n" usage))
+      (not (empty? arguments)) (c/exit 1 str "Too many extra args!\n" usage)
+      errors (c/exit 1 (c/error-msg errors)))
 
     (if (:verbose options)
       (println "In verbose mode"))))
@@ -96,10 +89,10 @@
          usage (cmd-usage usage-str summary)
          missing-opts? (missing-required-opts? required-opts options) ]
     (cond
-      (:help options) (exit 0 usage)
-      missing-opts?   (exit 0 (str "Missing required param!\n" usage))
-      (empty? arguments) (exit 1 (str "Please pass in a arg\n" usage))
-      errors (exit 1 (error-msg errors)))
+      (:help options) (c/exit 0 usage)
+      missing-opts?   (c/exit 0 (str "Missing required param!\n" usage))
+      (empty? arguments) (c/exit 1 (str "Please pass in a arg\n" usage))
+      errors (c/exit 1 (c/error-msg errors)))
 
     (if (:verbose options)
       (println "In verbose mode")) 
@@ -119,13 +112,13 @@
          usage (root-usage summary subcmd-summary) 
          subcommand (keyword (first arguments)) ]
     (cond
-      (:help options) (exit 0 usage)
-      (not (>= (count arguments) 1))  (exit 1 (str "Please use a valid subcommand! "
+      (:help options) (c/exit 0 usage)
+      (not (>= (count arguments) 1))  (c/exit 1 (str "Please use a valid subcommand! "
                                                    "See '" prg-name " --help'."))
-      (not (contains? (set subcmds) subcommand)) (exit 1 (str "Invalid subcommand "
+      (not (contains? (set subcmds) subcommand)) (c/exit 1 (str "Invalid subcommand "
                                                               "(" (name subcommand) "). "
                                                               "See '" prg-name " --help'."))
-      errors (exit 1 (error-msg errors)))
+      errors (c/exit 1 (c/error-msg errors)))
     (case subcommand
       :cmd1 (cmd1 (rest arguments))
       :cmd2 (cmd2 (rest arguments)))))
